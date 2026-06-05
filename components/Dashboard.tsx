@@ -124,7 +124,7 @@ const Dashboard: React.FC = () => {
   );
 };
 
-const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string; subText?: string }> = ({ icon, label, value, subText }) => (
+const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string; sub?: string }> = ({ icon, label, value, sub }) => (
   <div className="glass-card p-6 rounded-2xl">
     <div className="flex items-center gap-3 mb-2">
       <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
@@ -133,7 +133,7 @@ const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string; 
       <span className="text-slate-400 text-sm font-medium">{label}</span>
     </div>
     <div className="text-3xl font-bold mb-1">{value}</div>
-    {subText && <div className="text-xs text-slate-500">{subText}</div>}
+    {sub && <div className="text-xs text-slate-500">{sub}</div>}
   </div>
 );
 

@@ -2,5 +2,7 @@
   "name": "Remix: Remix: SentinAI - AI Fraud Detection System",
   "description": "A high-performance AI-driven credit card fraud detection system demonstrating real-time transaction analysis and machine learning security patterns.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
