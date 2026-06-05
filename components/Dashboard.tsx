@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend, PieChart, Pie, Cell
 } from 'recharts';
-import { TrendingUp, AlertCircle, CheckCircle2, DollarSign } from 'lucide-react';
+import { TrendingUp, AlertCircle, CheckCircle2, IndianRupee } from 'lucide-react';
 
 const data = [
   { name: 'Mon', value: 400, fraud: 12 },
@@ -37,8 +37,8 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard icon={<DollarSign className="text-emerald-400" />} label="Volume Protected" value="$1.2M" sub="+12% from last week" />
-        <StatCard icon={<AlertCircle className="text-rose-400" />} label="Fraud Prevented" value="242" sub="Saved ~$84,000" />
+        <StatCard icon={<IndianRupee className="text-emerald-400" />} label="Volume Protected" value="₹10.2 Cr" sub="+12% from last week" />
+        <StatCard icon={<AlertCircle className="text-rose-400" />} label="Fraud Prevented" value="242" sub="Saved ~₹71 Lakhs" />
         <StatCard icon={<CheckCircle2 className="text-sky-400" />} label="Model Accuracy" value="99.2%" sub="Current: Production-v4" />
         <StatCard icon={<TrendingUp className="text-amber-400" />} label="Daily Traffic" value="4.8k" sub="Avg: 120 txn/hour" />
       </div>
@@ -112,10 +112,10 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="text-sm">
-              <ActivityRow id="TX-94821" time="2 mins ago" merchant="Amazon.com" amount="$2,499.00" location="Remote Access" action="Blocked" status="danger" />
-              <ActivityRow id="TX-94819" time="15 mins ago" merchant="Starbucks" amount="$12.50" location="Local" action="Approved" status="success" />
-              <ActivityRow id="TX-94818" time="1 hour ago" merchant="CryptoEx Inc" amount="$8,000.00" location="Reykjavik, IS" action="Flagged (2FA)" status="warning" />
-              <ActivityRow id="TX-94815" time="3 hours ago" merchant="Netflix" amount="$15.99" location="Auto-Billing" action="Approved" status="success" />
+              <ActivityRow id="TX-94821" time="2 mins ago" merchant="Amazon.com" amount="₹2,49,900.00" location="Remote Access" action="Blocked" status="danger" />
+              <ActivityRow id="TX-94819" time="15 mins ago" merchant="Starbucks" amount="₹1,050.00" location="Local" action="Approved" status="success" />
+              <ActivityRow id="TX-94818" time="1 hour ago" merchant="CryptoEx Inc" amount="₹6,60,000.00" location="Reykjavik, IS" action="Flagged (2FA)" status="warning" />
+              <ActivityRow id="TX-94815" time="3 hours ago" merchant="Netflix" amount="₹1,499.00" location="Auto-Billing" action="Approved" status="success" />
             </tbody>
           </table>
         </div>

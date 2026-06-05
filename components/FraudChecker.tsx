@@ -1,27 +1,125 @@
 import React, { useState } from 'react';
-import { Search, AlertTriangle, CheckCircle, Loader2, Info, ShieldAlert } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, Loader2, Info, ShieldAlert, Globe, MapPin } from 'lucide-react';
 import { analyzeTransaction } from '../services/geminiService';
 import { FraudAnalysisResult } from '../types';
+
+const locationData: Record<string, { states: Record<string, string[]>; defaultState: string }> = {
+  'India': {
+    states: {
+      'Delhi': ['New Delhi', 'Dwarka', 'Karol Bagh', 'Other'],
+      'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Other'],
+      'Karnataka': ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubli', 'Other'],
+      'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Trichy', 'Other'],
+      'Telangana': ['Hyderabad', 'Warangal', 'Secunderabad', 'Other'],
+      'Other': []
+    },
+    defaultState: 'Delhi'
+  },
+  'United States': {
+    states: {
+      'California': ['San Francisco', 'Los Angeles', 'San Diego', 'San Jose', 'Other'],
+      'New York': ['New York City', 'Buffalo', 'Albany', 'Syracuse', 'Other'],
+      'Texas': ['Houston', 'Austin', 'Dallas', 'San Antonio', 'Other'],
+      'Other': []
+    },
+    defaultState: 'California'
+  },
+  'United Kingdom': {
+    states: {
+      'England': ['London', 'Manchester', 'Birmingham', 'Leeds', 'Other'],
+      'Scotland': ['Edinburgh', 'Glasgow', 'Aberdeen', 'Other'],
+      'Other': []
+    },
+    defaultState: 'England'
+  },
+  'Nigeria': {
+    states: {
+      'Lagos State': ['Lagos', 'Ikeja', 'Lekki', 'Other'],
+      'Abuja FCT': ['Abuja', 'Garki', 'Wuse', 'Other'],
+      'Other': []
+    },
+    defaultState: 'Lagos State'
+  },
+  'United Arab Emirates': {
+    states: {
+      'Dubai': ['Dubai Marina', 'Deira', 'Downtown Dubai', 'Other'],
+      'Abu Dhabi': ['Abu Dhabi City', 'Al Ain', 'Other'],
+      'Other': []
+    },
+    defaultState: 'Dubai'
+  },
+  'Other': {
+    states: {
+      'Other': []
+    },
+    defaultState: 'Other'
+  }
+};
 
 const FraudChecker: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    location: '',
+    country: 'India',
+    state: 'Delhi',
+    city: 'New Delhi',
+    customCountry: '',
+    customState: '',
+    customCity: '',
     time: '',
     cardType: 'Visa Platinum',
     merchant: '',
   });
   const [result, setResult] = useState<FraudAnalysisResult | null>(null);
 
+  const handleCountryChange = (country: string) => {
+    const countryInfo = locationData[country];
+    const defaultState = countryInfo ? countryInfo.defaultState : 'Other';
+    const statesMap = countryInfo ? countryInfo.states : {};
+    const defaultCity = (statesMap[defaultState] && statesMap[defaultState].length > 0) ? statesMap[defaultState][0] : 'Other';
+    
+    setFormData(prev => ({
+      ...prev,
+      country,
+      state: defaultState,
+      city: defaultCity,
+      customCountry: '',
+      customState: '',
+      customCity: ''
+    }));
+  };
+
+  const handleStateChange = (state: string) => {
+    const countryInfo = locationData[formData.country];
+    const statesMap = countryInfo ? countryInfo.states : {};
+    const defaultCity = (statesMap[state] && statesMap[state].length > 0) ? statesMap[state][0] : 'Other';
+    
+    setFormData(prev => ({
+      ...prev,
+      state,
+      city: defaultCity,
+      customState: '',
+      customCity: ''
+    }));
+  };
+
+  const getCombinedLocation = () => {
+    const c = formData.country === 'Other' ? (formData.customCountry || 'Other Country') : formData.country;
+    const s = formData.state === 'Other' ? (formData.customState || 'Other State') : formData.state;
+    const ci = formData.city === 'Other' ? (formData.customCity || 'Other City') : formData.city;
+    return `${ci}, ${s}, ${c}`;
+  };
+
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
 
+    const combinedLocation = getCombinedLocation();
+
     const res = await analyzeTransaction(
       Number(formData.amount),
-      formData.location,
+      combinedLocation,
       formData.time,
       formData.cardType,
       formData.merchant
@@ -34,16 +132,26 @@ const FraudChecker: React.FC = () => {
   const setPreset = (type: 'safe' | 'suspicious') => {
     if (type === 'safe') {
       setFormData({
-        amount: '45.50',
-        location: 'Local Grocery Store (Home City)',
+        amount: '1450.00',
+        country: 'India',
+        state: 'Delhi',
+        city: 'New Delhi',
+        customCountry: '',
+        customState: '',
+        customCity: '',
         time: '12:30 PM',
         cardType: 'Visa Platinum',
-        merchant: 'Whole Foods',
+        merchant: 'Blinkit Delivery',
       });
     } else {
       setFormData({
-        amount: '4500.00',
-        location: 'Lagos, Nigeria (Unexpected Region)',
+        amount: '350000.00',
+        country: 'Nigeria',
+        state: 'Lagos State',
+        city: 'Lagos',
+        customCountry: '',
+        customState: '',
+        customCity: '',
         time: '03:15 AM',
         cardType: 'Visa Platinum',
         merchant: 'HighEnd Tech Store',
@@ -70,7 +178,7 @@ const FraudChecker: React.FC = () => {
 
           <form onSubmit={handleCheck} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Transaction Amount ($)</label>
+              <label className="block text-sm font-medium text-slate-400 mb-1">Transaction Amount (₹)</label>
               <input
                 type="number"
                 required
@@ -80,17 +188,113 @@ const FraudChecker: React.FC = () => {
                 placeholder="0.00"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Location</label>
-              <input
-                type="text"
-                required
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="City, Country"
-              />
+            
+            {/* Country, State, City Selection Rows */}
+            <div className="space-y-4 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
+              <div className="text-xs font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                <Globe size={14} /> Location Details
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Country</label>
+                  <select
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
+                    value={formData.country}
+                    onChange={(e) => handleCountryChange(e.target.value)}
+                  >
+                    {Object.keys(locationData).map((country) => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">State/Province</label>
+                  <select
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
+                    value={formData.state}
+                    onChange={(e) => handleStateChange(e.target.value)}
+                    disabled={formData.country === 'Other'}
+                  >
+                    {formData.country !== 'Other' && locationData[formData.country] ? (
+                      Object.keys(locationData[formData.country].states).map((state) => (
+                        <option key={state} value={state}>{state}</option>
+                      ))
+                    ) : (
+                      <option value="Other">Other</option>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">City</label>
+                  <select
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
+                    value={formData.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value, customCity: '' }))}
+                    disabled={formData.country === 'Other' || formData.state === 'Other'}
+                  >
+                    {formData.country !== 'Other' && formData.state !== 'Other' && locationData[formData.country]?.states[formData.state] ? (
+                      locationData[formData.country].states[formData.state].map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))
+                    ) : (
+                      <option value="Other">Other</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              {/* Conditional custom manual entry text fields */}
+              {(formData.country === 'Other' || formData.state === 'Other' || formData.city === 'Other') && (
+                <div className="p-3 bg-slate-800/40 rounded-lg border border-slate-700/50 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Specify Location Details Manually:</div>
+                  
+                  {formData.country === 'Other' && (
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-400 mb-1">Custom Country Name</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
+                        value={formData.customCountry}
+                        onChange={(e) => setFormData(prev => ({ ...prev, customCountry: e.target.value }))}
+                        placeholder="Enter Country (e.g. Canada)"
+                      />
+                    </div>
+                  )}
+
+                  {(formData.country === 'Other' || formData.state === 'Other') && (
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-400 mb-1">Custom State/Province Name</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
+                        value={formData.customState}
+                        onChange={(e) => setFormData(prev => ({ ...prev, customState: e.target.value }))}
+                        placeholder="Enter State/Province (e.g. Ontario)"
+                      />
+                    </div>
+                  )}
+
+                  {(formData.country === 'Other' || formData.state === 'Other' || formData.city === 'Other') && (
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-400 mb-1">Custom City Name</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
+                        value={formData.customCity}
+                        onChange={(e) => setFormData(prev => ({ ...prev, customCity: e.target.value }))}
+                        placeholder="Enter City (e.g. Toronto)"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">Time</label>

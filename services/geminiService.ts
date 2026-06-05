@@ -15,13 +15,13 @@ export async function analyzeTransaction(
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `Analyze this credit card transaction for potential fraud:
-        Amount: $${amount}
+        Amount: ₹${amount} (INR)
         Location: ${location}
         Time: ${time}
         Card Type: ${cardType}
         Merchant: ${merchant}
         
-        Compare this against typical user spending patterns. Consider high amounts, unusual locations, or strange times for transactions.`,
+        Compare this against typical user spending patterns. Consider high amounts, unusual locations, or strange times for transactions. Note that the amount is explicitly in Indian Rupees (INR, ₹).`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -46,10 +46,10 @@ export async function analyzeTransaction(
     console.error("Gemini Analysis Error:", error);
     // Fallback logic for demo purposes if API fails
     return {
-      isFraud: amount > 5000,
+      isFraud: amount > 50000,
       confidence: 0.85,
-      reason: amount > 5000 ? "Transaction amount exceeds standard limit." : "Transaction patterns appear normal.",
-      recommendation: amount > 5000 ? "Request immediate verification from cardholder." : "No action required.",
+      reason: amount > 50000 ? "Transaction amount exceeds standard limit of ₹50,000." : "Transaction patterns appear normal.",
+      recommendation: amount > 50000 ? "Request immediate verification from cardholder." : "No action required.",
     };
   }
 }
